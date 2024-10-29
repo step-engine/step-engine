@@ -71,7 +71,7 @@ The below are term that are or can be used with the step-engine. They are descri
 ## Command
 A command i.e. a request with some data will trigger the execution of a workflow. The request can be received from a message broker or a REST API call. When receiving the command it should be stored with the status TO_BE_PROCSSED by some thread. This way commands can be received even if the step-engine is not running. Use the command repository:
 ```
-dk.ngr.step.engine.repository.CommandRepository
+org.step.engine.repository.CommandRepository
 ```
 to save the command:
 ```
@@ -132,11 +132,11 @@ Implement a handler method for each domain event that should execute *next step*
 
 Step classes are executed by the workflow class using the StepExecutor:
 ```
-dk.ngr.step.engine.domain.StepExecutor 
+org.step.engine.step.StepExecutor 
 ```
 In each handler make a step class object with input and then execute it using the StepExecutor. An example of a workflow class can be seen in (test):
 ```
-dk.ngr.step.engine.application.workflow.listener.Workflow 
+org.step.engine.application.workflow.listener.Workflow 
 ```
 
 For info on making a step class, see *Step* below.
@@ -149,12 +149,12 @@ The EventStore class will append (write) all published domain events to the even
 
 The purpose of the event store:
 * transparency in production - you know exactly what business logic *has been* executed and especially what *has not* been executed. This is important both in successful -and error mode.
-* being able to retry - retry is done by loading the events for a particular workflow id and then publish the last saved event. That will trigger the failing step again.
-* continue workflow upon callback - all events are loaded for a particular workflow id before publishing defined trigger domain event (that will continue the workflow). Note that the workflow id is a callback id given to some external process (before waiting).
+* being able to retry - retry is done by loading the last event for a particular workflow id and then let the workflow handle the event. That will trigger the failing step again.
+* continue workflow upon callback - all events are loaded for a particular workflow id before letting the workflow handle the domain event. Note that the workflow id is the callback id given to some external process (before waiting). The same principle is used for the domain event id, so that the next step can be triggered.
 
 Let the EventStore class implements the *EventListener* interface so that domain events can be received. Upon receive append the event to the store using the EventRepository that is injected. Implement your own EventRepository using the below interface:
 ```
-dk.ngr.step.engine.repository.EventRepository 
+org.step.engine.repository.EventRepository 
 ```
 ### Note
 Because of the listener pattern, the logic of the EventStore is removed from the business logic which makes the code clean and the unit test much simpler. The Json format is used in the event store when writing and reading domain events.
@@ -169,7 +169,7 @@ An aggregate is an object model that has the state of the workflow by mutating t
 
 In the below both *Mutate from memory* and *Mutate from event store* is described. An example for both can be seen here:
 ```
-dk.ngr.step.engine.application.workflow.listener.Aggregate 
+org.step.engine.application.workflow.listener.Aggregate 
 ```
 
 ### Mutate aggregate from memory (normal)
@@ -185,7 +185,7 @@ EventPublisher.setState(String applicationId, List<DomainEvent> events)
 ```
 Again, you should make this call in callback situations as described above. The call is made in the retry implementation also since all events are loaded. This is handled automatically by the step-engine in:
 ```
-dk.ngr.step.engine.scheduler.retry.RetryService 
+org.step.engine.scheduler.retry.RetryService 
 ```
 
 ## Step
@@ -210,7 +210,7 @@ After executing the business logic each step should publish a domain event that 
 * MobilePayRequested
 * SmsSended
 
-Create the step class and let it implement the *dk.ngr.step.engine.domain.Executor* interface:
+Create the step class and let it implement the *org.step.engine.step.Executor* interface:
 ```
 public interface Executor {
   void execute();
@@ -247,7 +247,7 @@ public abstract class DomainEvent {
 A domain event must implement *accept* allowing the EventListener to visit the object.
 
 ### EventListener
-To listen for domain events simply implement the *dk.ngr.step.engine.domain.event.EventListener* interface:
+To listen for domain events simply implement the *org.step.engine.domain.event.EventListener* interface:
 ```
 public interface EventListener<K extends DomainEvent> {
   void handle(K event, List<DomainEvent> events);
@@ -280,7 +280,7 @@ Here are some of the errors that can occur:
 * code bug in your code.
 
 ### ErrorListener
-All errors are published as events and handled by the ErrorHandler which implements the *dk.ngr.step.engine.domain.error.ErrorListener* interface:
+All errors are published as events and handled by the ErrorHandler which implements the *org.step.engine.domain.error.ErrorListener* interface:
 ```
 public interface ErrorListener {
   default void handle(StepFailedRetry event) {}
@@ -323,7 +323,7 @@ This will make the scheduler start retrying maxAttempt times based on the given 
 #### Retry strategy
 It is up to the developer to implement the retry strategy interface:
 ```
-dk.ngr.step.engine.scheduler.retry.RetryStrategy 
+org.step.engine.scheduler.retry.RetryStrategy 
 public interface RetryStrategy {
   long get(int i, long now);
 }
@@ -414,7 +414,7 @@ Db integration is needed to these tables:
  
 The integration is done by implementing the interfaces in:
 ```
-dk.ngr.step.engine.repository
+org.step.engine.repository
 ```
 
 ### Command
@@ -453,7 +453,7 @@ Besides status the table contains info when to execute either retry or timeout. 
 ### Unit test
 The unit test is using a memdb which implements the interfaces located in:
 ```
-dk.ngr.step.engine.repository
+org.step.engine.repository
 ```
 
 ### step-engine REST API
