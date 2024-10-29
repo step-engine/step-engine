@@ -10,7 +10,7 @@ Simply create:
 
 You decide which db to use. You can either use the provided db-clients or implement the repository interfaces yourself. See package:
 ```
-dk.ngr.step.engine.repository
+org.step.engine.repository
 ```
 Prvovided db-clients are:
 * cassandra-db-client.jar 
@@ -75,7 +75,7 @@ org.step.engine.repository.CommandRepository<T>
 ```
 to save the command:
 ```
-  void save(Command command);
+void save(Command command);
 ```
 The execution of the command i.e. start execution of the workflow should be done by another thread. Get the commands with status TO_BE_PROCESSED by using:
 ```
@@ -88,10 +88,10 @@ CommandReceived
 Then publish the event like for example:
 ```
 EventPublisher.<UUID>.of().publish(
-    new CommandReceived(
-        workflowId,
-        message.getOrderNumber(),
-        message.getMobileNumber()));
+  new CommandReceived(
+    workflowId,
+    message.getOrderNumber(),
+    message.getMobileNumber()));
 ```
 Then let the workflow (listener) handle it. In other words, make a handler for that event in order to execute the first step.
 
@@ -154,7 +154,7 @@ The purpose of the event store:
 
 Let the EventStore class implements the *EventListener* interface so that domain events can be received. Upon receive append the event to the store using the EventRepository that is injected. Implement your own EventRepository using the below interface:
 ```
-org.step.engine.repository.EventRepository 
+org.step.engine.repository.EventRepository<T>
 ```
 ### Note
 Because of the listener pattern, the logic of the EventStore is removed from the business logic which makes the code clean and the unit test much simpler. The Json format is used in the event store when writing and reading domain events.
@@ -181,7 +181,7 @@ When waiting for a callback the workflow is stopped until the callback arrives a
 ### Set state in EventPublisher (retry and callback)
 After loading domain events they should be set unconditionally in the EventPublisher so that the list of all domain events are published in future handler calls (input parameter). This is done by calling
 ```
-EventPublisher.setState(String applicationId, List<DomainEvent> events) 
+EventPublisher.<T>setState(T workflowId, List<DomainEvent<T>> events) {
 ```
 Again, you should make this call in callback situations as described above. The call is made in the retry implementation also since all events are loaded. This is handled automatically by the step-engine in:
 ```
@@ -405,7 +405,6 @@ public class SmsStep implements Executor<UUID> {
     smsClient.send(..);
 
     EventPublisher.<UUID>of().publish(new SmsSended(..));
-
   }
 }
 ```
