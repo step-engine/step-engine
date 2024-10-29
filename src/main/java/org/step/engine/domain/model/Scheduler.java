@@ -4,13 +4,13 @@ import org.step.engine.scheduler.SchedulerStatus;
 import org.step.engine.scheduler.SchedulerType;
 
 public class Scheduler<T> {
-  private T workflowId;
-  private String applicationId;
-  private SchedulerType schedulerType;
-  private int eventType;
+  private final T workflowId;
+  private final String applicationId;
+  private final SchedulerType schedulerType;
+  private final int eventType;
   private SchedulerStatus schedulerStatus;
-  private long executeAt;
-  private long occuredOn;
+  private final long executeAt;
+  private final long occurredOn;
 
   public Scheduler(T workflowId,
                    String applicationId,
@@ -18,14 +18,14 @@ public class Scheduler<T> {
                    int eventType,
                    SchedulerStatus schedulerStatus,
                    long executeAt,
-                   long occuredOn) {
+                   long occurredOn) {
     this.workflowId = workflowId;
     this.applicationId = applicationId;
     this.schedulerType = schedulerType;
     this.eventType = eventType;
     this.schedulerStatus = schedulerStatus;
     this.executeAt = executeAt;
-    this.occuredOn = occuredOn;
+    this.occurredOn = occurredOn;
   }
 
   public T getWorkflowId() {
@@ -56,7 +56,7 @@ public class Scheduler<T> {
     return executeAt;
   }
 
-  public long getOccuredOn() {
-    return occuredOn;
+  public long getOccurredOn() {
+    return occurredOn;
   }
 }

@@ -28,7 +28,7 @@ public class SchedulerRepositoryImpl implements SchedulerRepository<UUID> {
   public void updateStatus(UUID workflowId, SchedulerStatus schedulerStatus) {
     Optional<Scheduler<UUID>> schedule = list.stream().
             filter(x -> x.getWorkflowId() == workflowId)
-            .min(Comparator.comparing(Scheduler::getOccuredOn));
+            .min(Comparator.comparing(Scheduler::getOccurredOn));
     schedule.ifPresent(x -> x.setSchedulerStatus(schedulerStatus));
   }
 

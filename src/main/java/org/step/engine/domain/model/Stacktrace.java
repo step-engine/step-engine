@@ -1,20 +1,20 @@
 package org.step.engine.domain.model;
 
 public class Stacktrace<T> {
-  private T workflowId;
-  private String applicationId;
-  private String stacktrace;
-  private long occuredOn;
+  private final T workflowId;
+  private final String applicationId;
+  private final String stacktrace;
+  private final long occurredOn;
 
   public Stacktrace(
-          T workflowId,
-          String applicationId,
-          String stacktrace,
-          long occuredOn) {
+      T workflowId,
+      String applicationId,
+      String stacktrace,
+      long occurredOn) {
     this.workflowId = workflowId;
     this.applicationId = applicationId;
     this.stacktrace = stacktrace;
-    this.occuredOn = occuredOn;
+    this.occurredOn = occurredOn;
   }
 
   public T getWorkflowId() {
@@ -29,7 +29,7 @@ public class Stacktrace<T> {
     return stacktrace;
   }
 
-  public long getOccuredOn() {
-    return occuredOn;
+  public long getOccurredOn() {
+    return occurredOn;
   }
 }

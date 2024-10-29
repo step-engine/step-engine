@@ -42,7 +42,7 @@ public class StepExecutor<T> {
 
         commandRepository.updateStatus(executor.event().workflowId, CommandStatus.WAIT);
 
-        long occuredOn = System.currentTimeMillis();
+        long occurredOn = System.currentTimeMillis();
         Scheduler<T> scheduler = new Scheduler<T>(
                 executor.event().workflowId,
                 executor.event().applicationId,
@@ -50,7 +50,7 @@ public class StepExecutor<T> {
                 oWait.get().eventType(),
                 SchedulerStatus.TO_BE_PROCESSED,
                 System.currentTimeMillis() + oWait.get().timeoutInMilliseconds(),
-                occuredOn);
+                occurredOn);
         schedulerRespository.save(scheduler);
 
         EventPublisher.of().publish(
@@ -59,7 +59,7 @@ public class StepExecutor<T> {
                         executor.event().applicationId,
                         waitEventType,
                         oWait.get().timeoutInMilliseconds(),
-                        occuredOn));
+                        occurredOn));
       }
 
     } catch (StepException e) {

@@ -17,7 +17,7 @@ import java.util.UUID;
 public class SchedulerWaitProcessStep implements Executor<UUID> {
   private final SmsAcknowledged event;
   private final SchedulerRepository<UUID> schedulerRespository;
-  private final long occuredOn;
+  private final long occurredOn;
 
   @Override
   public void execute() {

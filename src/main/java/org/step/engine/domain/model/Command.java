@@ -3,14 +3,14 @@ package org.step.engine.domain.model;
 import org.step.engine.domain.command.CommandStatus;
 
 public class Command<T> {
-	private T workflowId;
-	private String applicationId;
-	private int commandType;
+	private final T workflowId;
+	private final String applicationId;
+	private final int commandType;
 	private CommandStatus commandStatus;
-	private String commandName;
-	private String command;
+	private final String commandName;
+	private final String command;
 	private String note;
-	private long occuredOn;
+	private final long occurredOn;
 
 	public Command(
 			T workflowId,
@@ -20,7 +20,7 @@ public class Command<T> {
 			String commandName,
 			String command,
 			String note,
-			long occuredOn) {
+			long occurredOn) {
 		this.workflowId = workflowId;
 		this.applicationId = applicationId;
 		this.commandType = commandType;
@@ -28,7 +28,7 @@ public class Command<T> {
 		this.commandName = commandName;
 		this.command = command;
 		this.note = note;
-		this.occuredOn = occuredOn;
+		this.occurredOn = occurredOn;
 	}
 
 	public T getWorkflowId() { return workflowId; }
@@ -40,5 +40,5 @@ public class Command<T> {
 	public String getCommand() { return command; }
 	public String getComment() { return note; }
 	public void setComment(String comment) { this.note = comment; }
-	public long getOccuredOn() { return occuredOn; }
+	public long getOccurredOn() { return occurredOn; }
 }

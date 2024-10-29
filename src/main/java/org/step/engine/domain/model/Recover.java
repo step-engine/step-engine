@@ -3,13 +3,13 @@ package org.step.engine.domain.model;
 import org.step.engine.domain.error.RecoverStatus;
 
 public class Recover<T> {
-  private T workflowId;
-  private String applicationId;
-  private int eventType;
+  private final T workflowId;
+  private final String applicationId;
+  private final int eventType;
   private RecoverStatus recoverStatus;
   private int retry;
-  private String note;
-  private long occuredOn;
+  private final String note;
+  private final long occurredOn;
 
   public Recover(
           T workflowId,
@@ -18,14 +18,14 @@ public class Recover<T> {
           RecoverStatus recoverStatus,
           int retry,
           String note,
-          long occuredOn) {
+          long occurredOn) {
     this.workflowId = workflowId;
     this.applicationId = applicationId;
     this.eventType = eventType;
     this.recoverStatus = recoverStatus;
     this.retry = retry;
     this.note = note;
-    this.occuredOn = occuredOn;
+    this.occurredOn = occurredOn;
   }
 
   public T getWorkflowId() {
@@ -60,7 +60,7 @@ public class Recover<T> {
     return note;
   }
 
-  public long getOccuredOn() {
-    return occuredOn;
+  public long getOccurredOn() {
+    return occurredOn;
   }
 }

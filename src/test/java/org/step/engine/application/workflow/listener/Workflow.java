@@ -69,7 +69,7 @@ public class Workflow implements EventListener {
    */
   public void handle(SmsAcknowledged event, List<DomainEvent<UUID>> events) {
     aggregate.mutateFromEventstore(event.workflowId);
-    stepExecutor.execute(new SchedulerWaitProcessStep(event, schedulerRespository, aggregate.waitEvent.occuredOn));
+    stepExecutor.execute(new SchedulerWaitProcessStep(event, schedulerRespository, aggregate.waitEvent.occurredOn));
   }
 
   /**

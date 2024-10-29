@@ -234,7 +234,7 @@ public abstract class DomainEvent<T> {
   public T workflowId;
   public String applicationId;
   public int eventType;
-  public long occuredOn;
+  public long occurredOn;
 
   public DomainEvent() {}
 
@@ -242,11 +242,11 @@ public abstract class DomainEvent<T> {
       T workflowId,
       String applicationId,
       int eventType,
-      long occuredOn) {
+      long occurredOn) {
     this.workflowId = workflowId;
     this. applicationId = applicationId;
     this.eventType = eventType;
-    this.occuredOn = occuredOn;
+    this.occurredOn = occurredOn;
   }
 
   public abstract void accept(EventListener eventListener, List<DomainEvent<T>> events);

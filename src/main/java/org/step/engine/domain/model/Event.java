@@ -15,5 +15,5 @@ public class Event<T> {
   private int eventType;
   private String eventName;
   private String event;
-  private long occuredOn;
+  private long occurredOn;
 }
