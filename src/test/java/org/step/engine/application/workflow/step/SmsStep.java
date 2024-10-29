@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Retry(maxAttempt = 3)
 @Wait(timeoutInMilliseconds = 1, eventType = 3)
-public class SmsStep implements Executor {
+public class SmsStep implements Executor<UUID> {
   private final FiberValidated event;
   private final SmsClient client;
   private final CallbackRepository callbackRepository;
@@ -38,7 +38,7 @@ public class SmsStep implements Executor {
   }
 
   @Override
-  public DomainEvent event() {
+  public DomainEvent<UUID> event() {
     return event;
   }
 }

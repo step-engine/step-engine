@@ -71,7 +71,7 @@ The below are term that are or can be used with the step-engine. They are descri
 ## Command
 A command i.e. a request with some data will trigger the execution of a workflow. The request can be received from a message broker or a REST API call. When receiving the command it should be stored with the status TO_BE_PROCSSED by some thread. This way commands can be received even if the step-engine is not running. Use the command repository:
 ```
-org.step.engine.repository.CommandRepository
+org.step.engine.repository.CommandRepository<T>
 ```
 to save the command:
 ```
@@ -87,7 +87,7 @@ CommandReceived
 ```
 Then publish the event like for example:
 ```
-EventPublisher.of().publish(
+EventPublisher.<UUID>.of().publish(
     new CommandReceived(
         workflowId,
         message.getOrderNumber(),
@@ -100,13 +100,13 @@ After publishing the command status must be set to RUNNING. It can be done eithe
 
 A StatusUpdater example where CommandReceived is triggering the workflow and where ServiceProviderNotified is the last event published:
 ```
-public class StatusUpdater implements EventListener<DomainEvent> {
+public class StatusUpdater implements EventListener<DomainEvent<UUID>> {
   ...
-  public void handle(CommandReceived event, List<DomainEvent> events) {
+  public void handle(CommandReceived event, List<DomainEvent<UUID>> events) {
     commandRepository.updateStatus(event.applicationId, Timestamp.now(), CommandStatus.RUNNING);
   }
 
-  public void handle(ServiceProviderNotified event, List<DomainEvent> events) {
+  public void handle(ServiceProviderNotified event, List<DomainEvent<UUID>> events) {
     commandRepository.updateStatus(event.applicationId, Timestamp.now(), CommandStatus.PROCESSED);
   }
 }
@@ -122,10 +122,10 @@ In other words:
 
 > Publish a domain event in order to trigger the execution of a step.
 
-The workflow will be able to listen for domain events by implementing this interface:
+The workflow will be able to listen for domain events by implementing the EventListener interface:
 ```
-public interface EventListener<K extends DomainEvent> {
-  void handle(K event, List<DomainEvent> events);
+public interface EventListener {
+  <T> void handle(DomainEvent<T> event, List<? extends DomainEvent<T>> events);
 }
 ```
 Implement a handler method for each domain event that should execute *next step*. Subscribe to the EventPublisher so that it can receive domain events. Again, to start your workflow simply publish the event that is handled for the step that you have defined as the first step.
@@ -212,9 +212,9 @@ After executing the business logic each step should publish a domain event that 
 
 Create the step class and let it implement the *org.step.engine.step.Executor* interface:
 ```
-public interface Executor {
+public interface Executor<T> {
   void execute();
-  DomainEvent event();
+  DomainEvent<T> event();
 }
 ```
 
@@ -230,18 +230,27 @@ A domain event is published to signal that some particular business logic has be
 
 All domain events extends the abstract DomainEvent:
 ```
-public abstract class DomainEvent {
-  public UUID workflowId;
+public abstract class DomainEvent<T> {
+  public T workflowId;
   public String applicationId;
+  public int eventType;
   public long occuredOn;
 
-  public DomainEvent(UUID workflowId, String applicationId, long occuredOn) {
+  public DomainEvent() {}
+
+  public DomainEvent(
+      T workflowId,
+      String applicationId,
+      int eventType,
+      long occuredOn) {
     this.workflowId = workflowId;
     this. applicationId = applicationId;
+    this.eventType = eventType;
     this.occuredOn = occuredOn;
   }
 
-  public abstract void accept(EventListener<DomainEvent> eventListener, List<DomainEvent> events);
+  public abstract void accept(EventListener eventListener, List<DomainEvent<T>> events);
+}
 ```
 
 A domain event must implement *accept* allowing the EventListener to visit the object.
@@ -249,16 +258,16 @@ A domain event must implement *accept* allowing the EventListener to visit the o
 ### EventListener
 To listen for domain events simply implement the *org.step.engine.domain.event.EventListener* interface:
 ```
-public interface EventListener<K extends DomainEvent> {
-  void handle(K event, List<DomainEvent> events);
+public interface EventListener {
+  <T> void handle(DomainEvent<T> event, List<? extends DomainEvent<T>> events);
 }
 ```
 
 Then implement handler methods with the given domain event as parameter to be handled. Remember to add (subscribe) the listener to the EventPublisher. Note that the MethodInvoker is used by the handler to call a handler for at particular domain event:
 ```
 @Override
-public void handle(DomainEvent event, List<DomainEvent> list) {
-  MethodInvoker.invoke(this, event, list);
+public <UUID> void handle(DomainEvent<UUID> event, List<? extends DomainEvent<UUID>> events) {
+  methodInvoker.invoke(this, event, events);
 }
 ```
 
@@ -282,11 +291,11 @@ Here are some of the errors that can occur:
 ### ErrorListener
 All errors are published as events and handled by the ErrorHandler which implements the *org.step.engine.domain.error.ErrorListener* interface:
 ```
-public interface ErrorListener {
-  default void handle(StepFailedRetry event) {}
-  default void handle(StepFailedManual event) {}
-  default void handle(StepFailedError event) {}
-  default void handle(TimeoutEvent event) {}
+public interface ErrorListener<T extends Object> {
+  default void handle(StepFailedRetry<T> event) {}
+  default void handle(StepFailedManual<T> event) {}
+  default void handle(StepFailedError<T> event) {}
+  default void handle(TimeoutEvent<T> event) {}
 }
 ```
 Upon error the ErrorHandler will update these tables for a particular workflow id:
@@ -305,14 +314,14 @@ When a step is throwing a runtime exception you can make it *retry* using the @R
 
 ```Retry
 @Retry(maxAttempt = 3)
-public class SmsStep implements Executor {
+public class SmsStep implements Executor<UUID> {
 
   @Override
   public void execute() {
 
     smsClient.send(..);
 
-    EventPublisher.of().publish(new SmsSended(..));
+    EventPublisher.<UUID>of().publish(new SmsSended(..));
 
   }
 }
@@ -335,14 +344,14 @@ When a step is throwing a runtime exception you could also let the workflow go d
 
 ```Manual
 @Manual
-public class SmsStep implements Executor {
+public class SmsStep implements Executor<UUID> {
 
   @Override
   public void execute() {
 
     smsClient.send(..);
 
-    EventPublisher.of().publish(new SmsSended(..));
+    EventPublisher.<UUID>of().publish(new SmsSended(..));
 
   }
 }
@@ -388,14 +397,14 @@ After executing a step the workflow can be put into *wait mode* using the @Wait 
 
 ```Wait
 @Wait(timeoutInMilliseconds = 3600000, eventType = 3)
-public class SmsStep implements Executor {
+public class SmsStep implements Executor<UUID> {
 
   @Override
   public void execute() {
 
     smsClient.send(..);
 
-    EventPublisher.of().publish(new SmsSended(..));
+    EventPublisher.<UUID>of().publish(new SmsSended(..));
 
   }
 }
